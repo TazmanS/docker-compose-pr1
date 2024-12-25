@@ -1,23 +1,44 @@
 const express = require("express");
 const { Pool } = require("pg");
+const cors = require("cors");
 const bodyParser = require("body-parser");
 
 const app = express();
 const port = 5000;
 
 app.use(bodyParser.json());
+app.use(cors());
 
 const pool = new Pool({
-  user: process.env.POSTGRES_USER || "user",
-  host: process.env.POSTGRES_HOST || "db",
-  database: process.env.POSTGRES_DB || "app_db",
-  password: process.env.POSTGRES_PASSWORD || "password",
-  port: 5432,
+  user: process.env.POSTGRES_USER,
+  host: process.env.POSTGRES_HOST,
+  database: process.env.POSTGRES_DB,
+  password: process.env.POSTGRES_PASSWORD,
+  port: process.env.POSTGRES_PORT,
 });
+
+const createTableQuery = `
+  CREATE TABLE IF NOT EXISTS items (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT
+  );
+`;
 
 pool
   .connect()
-  .then(() => console.log("Connected to PostgreSQL"))
+  .then((client) => {
+    return client
+      .query(createTableQuery)
+      .then(() => {
+        console.log("Table 'items' created or already exists.");
+        client.release();
+      })
+      .catch((err) => {
+        console.error("Error creating table:", err);
+        client.release();
+      });
+  })
   .catch((err) => console.error("Error connecting to PostgreSQL:", err));
 
 app.get("/api/items", async (req, res) => {

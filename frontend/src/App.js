@@ -6,7 +6,7 @@ function App() {
   const [newItem, setNewItem] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const apiUrl = "/api/items";
+  const apiUrl = process.env.REACT_APP_API_URL + "/api/items";
 
   useEffect(() => {
     const fetchItems = async () => {
